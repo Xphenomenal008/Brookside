@@ -1,0 +1,28 @@
+services:
+  api-gateway:
+    build: ./api-gateway
+    env_file:
+      - ./api-gateway/.env
+    ports:
+      - "4000:4000"
+
+  auth-service:
+    build: ./auth-service
+    env_file:
+      - ./auth-service/.env
+    ports:
+      - "4001:4001"
+
+  podcast-service:
+    build: ./podcast-service
+    env_file:
+      - ./podcast-service/.env
+    ports:
+      - "4002:4002"
+
+  session-service:
+    build: ./session-service
+    env_file:
+      - ./session-service/.env
+    ports:
+      - "4003:4003"
