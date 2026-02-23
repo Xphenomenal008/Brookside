@@ -28,9 +28,9 @@ jobs:
       - name: Run tests
         working-directory: reverside/services/${{ matrix.service }}
         env:
-          AUTH_SERVICE_URL: http://localhost:4001
-          SESSION_SERVICE_URL: http://localhost:4003
-          PODCAST_SERVICE_URL: http://localhost:4002
+          AUTH_SERVICE: http://localhost:4001
+          SESSION_SERVICE: http://localhost:4003
+          PODCAST_SERVICE: http://localhost:4002
           MONGO_URL: mongodb://localhost:27017/test
         run: npm test
 
