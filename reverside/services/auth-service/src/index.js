@@ -13,7 +13,7 @@ app.use(cors({
 }));
 app.use(express.json())
 app.use(cookieParser());
-app.get("/heathy",(req,res)=>{
+app.get("/health",(req,res)=>{
   res.send("helthy from auth!")
 
 })
@@ -27,6 +27,7 @@ connectDb()
 app.use("/",require("./routes/auth-routes"))
 
 PORT=process.env.PORT || "4001"
-app.listen(PORT,()=>{
+const server=app.listen(PORT,()=>{
   console.log(`running ${PORT}`)
 })
+module.exports=server

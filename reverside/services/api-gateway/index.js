@@ -59,7 +59,7 @@ app.use(
     }
   })
 );
-app.get("/heathy",(req,res)=>{
+app.get("/health",(req,res)=>{
   res.send("helthy from apigateway!")
 
 })
@@ -91,6 +91,7 @@ app.get("/health", (req, res) => {
 
 /* ================= SERVER ================= */
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+const server=app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
 });
+module.exports=server

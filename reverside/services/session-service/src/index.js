@@ -13,13 +13,14 @@ connectDb()
 // })
 
 app.use("/session",require("./routes/sessionRoutes"))
-app.get("/heathy",(req,res)=>{
+app.get("/health",(req,res)=>{
   res.send("helthy from session-service!")
 
 })
 
 
 const PORT=process.env.PORT || 4003
-app.listen(PORT,(req,res)=>{
-    console.log("working")
+const server=app.listen(PORT,(req,res)=>{
+    console.log(`session service is running! ${PORT}`)
 })
+module.exports=server

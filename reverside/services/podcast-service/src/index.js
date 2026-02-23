@@ -23,7 +23,7 @@ app.use(express.json())
 //   next();
 // });
 
-app.get("/heathy",(req,res)=>{
+app.get("/health",(req,res)=>{
   res.send("helthy from podcast!")
 
 })
@@ -39,6 +39,7 @@ app.use("/podcasts",require("./routes/podcast-routes"))
 
 
 const PORT=process.env.PORT || 4002
-app.listen(PORT,(req,res)=>{
+const server=app.listen(PORT,(req,res)=>{
     console.log(`Podcast service is running! ${PORT}`)
 })
+module.exports=server
