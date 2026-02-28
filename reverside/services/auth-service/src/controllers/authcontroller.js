@@ -234,13 +234,29 @@ const resendOtp = async (req, res) => {
 
 // actually everytime our website got refresh we are sending the token from localstroge of frontend to the backend to verify
 //if this user real,and storing that user info automatically in frontend
-const verifyme= async (req, res) => {
-    // authMiddleware already verified the token! 
-    // Now just fetch the user from DB and send it back.
-    
-    const user = await User.findById(req.user.userId).select("-password");
-    res.json(user);
-    console.log(user)
+const verifyme = async (req, res) => {
+    try {
+        // 1. Get the ID from the custom header set by your middleware
+        const userId = req.headers["x-user-id"];
+
+        if (!userId) {
+            return res.status(401).json({ message: "User ID missing from headers" });
+        }
+
+        // 2. Search the database using that ID
+        const user = await User.findById(userId).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // 3. Send the user data back to the frontend
+        res.json(user);
+        
+    } catch (error) {
+        console.error("VERIFYME ERROR:", error);
+        res.status(500).json({ message: "Server error during verification" });
+    }
 };
 
 
