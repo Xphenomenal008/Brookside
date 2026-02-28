@@ -236,29 +236,38 @@ const resendOtp = async (req, res) => {
 //if this user real,and storing that user info automatically in frontend
 const verifyme = async (req, res) => {
     try {
-        // 1. Get the ID from the custom header set by your middleware
+        // 1. Get the ID from the header forwarded by the Gateway
         const userId = req.headers["x-user-id"];
 
-        if (!userId) {
-            return res.status(401).json({ message: "User ID missing from headers" });
+        // 2. Check if the ID actually exists
+        if (!userId || userId === "undefined") {
+            return res.status(401).json({ 
+                success: false, 
+                message: "User ID not found in headers. Gateway proxy might be misconfigured." 
+            });
         }
 
-        // 2. Search the database using that ID
+        // 3. Database lookup
         const user = await User.findById(userId).select("-password");
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ 
+                success: false, 
+                message: "User no longer exists in database" 
+            });
         }
 
-        // 3. Send the user data back to the frontend
-        res.json(user);
-        
+        // 4. Return the user object to React
+        res.status(200).json(user);
+
     } catch (error) {
         console.error("VERIFYME ERROR:", error);
-        res.status(500).json({ message: "Server error during verification" });
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal server error during verification" 
+        });
     }
 };
-
 
 
 
