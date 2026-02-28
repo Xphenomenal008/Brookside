@@ -25,12 +25,22 @@ const sessionservice=process.env.SESSION_SERVICE;
 
 // 1. PROTECTED ROUTE: /auth/me 
 // This must run the middleware to generate the x-user-id header
+ 
+// 2. PUBLIC ROUTES: /auth/login, /auth/signup, etc.
 app.use(
-  "/auth/me", 
-  authMiddleware, 
+  "/auth",
+  (req, res, next) => {
+    if (req.path === "/me") {
+      return authMiddleware(req, res, next);
+    }
+    next();
+  },
   createProxyMiddleware({
     target: authservice,
     changeOrigin: true,
+    pathRewrite: {
+      "^/auth": ""
+    },
     onProxyReq(proxyReq, req) {
       if (req.headers["x-user-id"]) {
         proxyReq.setHeader("x-user-id", req.headers["x-user-id"]);
@@ -38,17 +48,6 @@ app.use(
     }
   })
 );
-
-// 2. PUBLIC ROUTES: /auth/login, /auth/signup, etc.
-app.use(
-  "/auth",
-  createProxyMiddleware({
-    target: authservice,
-    changeOrigin: true
-  })
-);
-
-
 /* ================= PODCAST SERVICE ================= */
 /*
   Protected routes
