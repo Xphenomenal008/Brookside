@@ -232,6 +232,17 @@ const resendOtp = async (req, res) => {
   }
 };
 
+// actually everytime our website got refresh we are sending the token from localstroge of frontend to the backend to verify
+//if this user real,and storing that user info automatically in frontend
+const verifyme= async (req, res) => {
+    // authMiddleware already verified the token! 
+    // Now just fetch the user from DB and send it back.
+    
+    const user = await User.findById(req.user.userId).select("-password");
+    res.json(user);
+    console.log(user)
+};
+
 
 
 
@@ -242,5 +253,6 @@ module.exports = {
   functionlogin,
   functionlogout,
   verifyOtp,
-  resendOtp
+  resendOtp,
+  verifyme
 };
