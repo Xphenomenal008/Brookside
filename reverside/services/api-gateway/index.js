@@ -25,14 +25,17 @@ const sessionservice=process.env.SESSION_SERVICE;
 
 // 1. PROTECTED ROUTE: /auth/me 
 // This must run the middleware to generate the x-user-id header
+/* ================= AUTH SERVICE ================= */
+
+// A. Protected Auth Routes (e.g., /auth/me)
 app.use(
-  "/auth/me", 
-  authMiddleware, 
+  "/auth/me",
+  authMiddleware, // Gateway decodes the token here
   createProxyMiddleware({
     target: authservice,
     changeOrigin: true,
+    pathRewrite: { '^/auth/me': '/me' }, // Forward to /me on the Auth Service
     onProxyReq(proxyReq, req) {
-      
       if (req.headers["x-user-id"]) {
         proxyReq.setHeader("x-user-id", req.headers["x-user-id"]);
       }
@@ -40,12 +43,13 @@ app.use(
   })
 );
 
-// 2. PUBLIC ROUTES: /auth/login, /auth/signup, etc.
+// B. Public Auth Routes (Login, Signup, Verify-OTP)
 app.use(
   "/auth",
   createProxyMiddleware({
     target: authservice,
     changeOrigin: true
+    // No middleware here, so x-user-id won't be sent (which is correct for login)
   })
 );
 
