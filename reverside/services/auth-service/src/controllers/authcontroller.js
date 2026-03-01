@@ -156,10 +156,7 @@ const functionlogin = async (req, res) => {
       success: true,
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        email: user.email
-      }
+      user
     });
 
   } catch (err) {
