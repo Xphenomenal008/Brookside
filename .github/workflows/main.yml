@@ -11,11 +11,15 @@ jobs:
 
     strategy:
       matrix:
-        service:
-          - auth-service
-          - session-service
-          - podcast-service
-          - api-gateway
+        include:
+          - service: auth-service
+            hook: RENDER_AUTH_HOOK
+          - service: session-service
+            hook: RENDER_SESSION_HOOK
+          - service: podcast-service
+            hook: RENDER_PODCAST_HOOK
+          - service: api-gateway
+            hook: RENDER_GATEWAY_HOOK
 
     steps:
       - name: Checkout code
@@ -28,6 +32,9 @@ jobs:
       - name: Run tests
         working-directory: reverside/services/${{ matrix.service }}
         env:
+          AUTH_SERVICE: http://localhost:4001
+          SESSION_SERVICE: http://localhost:4003
+          PODCAST_SERVICE: http://localhost:4002
           MONGO_URL: mongodb://localhost:27017/test
         run: npm test
 
@@ -47,12 +54,4 @@ jobs:
 
       - name: Trigger Render Deploy
         run: |
-          if [ "${{ matrix.service }}" = "auth-service" ]; then
-            curl -X POST ${{ secrets.RENDER_AUTH_HOOK }}
-          elif [ "${{ matrix.service }}" = "session-service" ]; then
-            curl -X POST ${{ secrets.RENDER_SESSION_HOOK }}
-          elif [ "${{ matrix.service }}" = "podcast-service" ]; then
-            curl -X POST ${{ secrets.RENDER_PODCAST_HOOK }}
-          elif [ "${{ matrix.service }}" = "api-gateway" ]; then
-            curl -X POST ${{ secrets.RENDER_GATEWAY_HOOK }}
-          fi
+          curl -X POST ${{ secrets[matrix.hook] }}
