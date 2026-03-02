@@ -6,16 +6,20 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        service:
-          - auth-service
-          - session-service
-          - podcast-service
-          - api-gateway
+        include:
+          - service: auth-service
+            hook: https://api.render.com/deploy/srv-d6etskrh46gs738e99mg?key=aKpVVKtClIY
+          - service: session-service
+            hook: https://api.render.com/deploy/srv-d6eunvrh46gs73ae7jug?key=sanXXfrckXE
+          - service: podcast-service
+            hook: https://api.render.com/deploy/srv-d6eu358gjchc73abdlq0?key=S8yB8NOR7bI
+          - service: api-gateway
+            hook: https://api.render.com/deploy/srv-d6euq208tnhs73bjko30?key=Kv3wze0RNGE
 
     steps:
       - name: Checkout code
@@ -47,3 +51,7 @@ jobs:
       - name: Push Docker image
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service }}:latest
+
+      - name: Trigger Render Deploy
+        run: |
+          curl -X POST ${{ secrets[matrix.hook] }}
