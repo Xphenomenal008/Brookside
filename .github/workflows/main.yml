@@ -11,15 +11,11 @@ jobs:
 
     strategy:
       matrix:
-        include:
-          - service: auth-service
-            hook: https://api.render.com/deploy/srv-d6etskrh46gs738e99mg?key=aKpVVKtClIY
-          - service: session-service
-            hook: https://api.render.com/deploy/srv-d6eunvrh46gs73ae7jug?key=sanXXfrckXE
-          - service: podcast-service
-            hook: https://api.render.com/deploy/srv-d6eu358gjchc73abdlq0?key=S8yB8NOR7bI
-          - service: api-gateway
-            hook: https://api.render.com/deploy/srv-d6euq208tnhs73bjko30?key=Kv3wze0RNGE
+        service:
+          - auth-service
+          - session-service
+          - podcast-service
+          - api-gateway
 
     steps:
       - name: Checkout code
@@ -32,9 +28,6 @@ jobs:
       - name: Run tests
         working-directory: reverside/services/${{ matrix.service }}
         env:
-          AUTH_SERVICE: http://localhost:4001
-          SESSION_SERVICE: http://localhost:4003
-          PODCAST_SERVICE: http://localhost:4002
           MONGO_URL: mongodb://localhost:27017/test
         run: npm test
 
@@ -54,4 +47,12 @@ jobs:
 
       - name: Trigger Render Deploy
         run: |
-          curl -X POST ${{ secrets[matrix.hook] }}
+          if [ "${{ matrix.service }}" = "auth-service" ]; then
+            curl -X POST ${{ secrets.RENDER_AUTH_HOOK }}
+          elif [ "${{ matrix.service }}" = "session-service" ]; then
+            curl -X POST ${{ secrets.RENDER_SESSION_HOOK }}
+          elif [ "${{ matrix.service }}" = "podcast-service" ]; then
+            curl -X POST ${{ secrets.RENDER_PODCAST_HOOK }}
+          elif [ "${{ matrix.service }}" = "api-gateway" ]; then
+            curl -X POST ${{ secrets.RENDER_GATEWAY_HOOK }}
+          fi
