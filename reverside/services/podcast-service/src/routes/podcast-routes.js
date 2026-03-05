@@ -1,11 +1,14 @@
 express=require("express")
 router=express.Router()
-const {createpodcast,listMypodcasts,createepisodefromsession, UploadEpisosdeAudio}=require("../controllers/podcastcontroller")
+const {createpodcast,listMypodcasts,createepisodefromsession, UploadEpisosdeAudio, explorepodcasts, podcastbyid, listepisodes}=require("../controllers/podcastcontroller")
 const uploadAudio=require("../middlewares/uploadAudio")
 const internalAuth=require("../middlewares/internalAuth")
 
 router.post("/",createpodcast)
-router.get("/",listMypodcasts)
+router.get("/my",listMypodcasts)
+router.get("/explore",explorepodcasts)
+router.get("/:podcastId",podcastbyid)
+router.get("/:podcastId/episodes",listepisodes)
 
 //we used internalauth middleware to ensure that this request is comming from right service internally
 //session end route will call this from session service when session actually ends to upload comming audio

@@ -3,6 +3,7 @@ const podcast=require("../model/podcastmodel")
 const Episode=require("../model/Episodemodel")
 const cloudinary = require("../config/cloudinary");
 
+
  const createpodcast=async(req,res)=>{
   try{
     const{title,description}=req.body
@@ -73,6 +74,84 @@ if (existingPodcast) {
  
  
  }
+
+ //podcasts from other users.
+ const explorepodcasts=async(req,res)=>{
+  try{
+    const userId=req.headers["x-user-id"]
+    if(!userId){
+      res.status(403).json({
+        success:false,
+        message:"unautherized",
+      })
+    }
+    const allpodcasts=await podcast.find({creatorId:{$ne:userId}}).sort({createdAt:-1});
+    return res.status(200).json({
+      success:true,
+      podcasts:allpodcasts
+    })
+
+  }catch(e){
+    return res.status(500).json({
+             success:false,
+             message:e.message,
+         })
+
+  }
+
+ }
+
+ //get specificpodcast
+ const podcastbyid=async(req,res)=>{
+  try{
+    const {podcastid}=req.params;
+    const specificPodcast=await podcast.findOne({_id:podcastid});
+    if(!specificPodcast){
+      return res.status(404).json({
+        success:true,
+        message:"no podcast found!"
+      })
+    }
+    return res.status(200).json({
+      success:true,
+      Podcast:specificPodcast
+    })
+
+  }catch(e){
+    return res.status(500).json({
+      success:false,
+      message:e.message
+    })
+  }
+    
+
+ }
+
+ //get episodes from podcastid , list all which comes under one episode
+ const listepisodes=async(req,res)=>{
+ try{
+     const {podcastId}=req.params;
+     const episodes=await Episode.find({podcastId}).sort({createdAt:-1})
+     if(!episodes){
+      return  res.status(404).json({
+       success:false,
+       message:"no episodes found!"
+       })
+ }
+     return res.status(200).json({
+     success:true,
+     episodes
+     }) 
+
+ }catch(e){
+      return res.status(500).json({
+      success:false,
+      message:e.message
+    })
+ }
+  
+ }
+
 
  //internal episode creation ...this one is only called by session service on ending the session , acctually we will create a episode draft first
  //later on will upload the audio
@@ -165,4 +244,4 @@ const UploadEpisosdeAudio = async (req, res) => {
 
 
 
- module.exports={createpodcast,listMypodcasts,UploadEpisosdeAudio,createepisodefromsession}
+ module.exports={createpodcast,listMypodcasts,UploadEpisosdeAudio,createepisodefromsession,explorepodcasts,podcastbyid,listepisodes}
