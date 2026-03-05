@@ -104,8 +104,8 @@ if (existingPodcast) {
  //get specificpodcast
  const podcastbyid=async(req,res)=>{
   try{
-    const {podcastid}=req.params;
-    const specificPodcast=await podcast.findOne({_id:podcastid});
+    const {podcastId}=req.params;
+    const specificPodcast=await podcast.findOne({_id:podcastId});
     if(!specificPodcast){
       return res.status(404).json({
         success:true,
