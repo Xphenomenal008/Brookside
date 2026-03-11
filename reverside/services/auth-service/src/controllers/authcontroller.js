@@ -112,6 +112,8 @@ const verifyOtp=async(req,res)=>{
 
 /* ===================== LOGIN ===================== */
 const functionlogin = async (req, res) => {
+  console.log("LOGIN BODY:", req.body);
+  console.log("Password length:", password?.length);
   try {
     const { email, password } = req.body;
 
@@ -132,7 +134,8 @@ const functionlogin = async (req, res) => {
         message: "no user found"
       });
     }
-
+    
+     
     //we will also check if user email is verified or not !
     if (!user.isVerified){
       return res.status(403).json({
@@ -142,6 +145,14 @@ const functionlogin = async (req, res) => {
     }
 
     // Password compare
+    console.log("Entered password:", password);
+console.log("Stored hash:", user.password);
+
+const test = await bcrypt.compare("ashu1234", user.password);
+console.log("Manual bcrypt test:", test);
+
+const isMatcha = await bcrypt.compare(password, user.password);
+console.log("Request bcrypt result:", isMatcha);
   
     const isMatch = await bcrypt.compare(password, user.password);
     console.log(`is match ${isMatch}`)
