@@ -34,6 +34,7 @@ io.on("connection", (socket) => {
   socket.on("join-session", async ({ sessionId, userId }) => {
     try {
       socket.join(sessionId);
+      socket.to(sessionId).emit("user-joined", { userId });
 
       const session = await Session.findById(sessionId);
       if (!session) return;
@@ -58,22 +59,43 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ---- WEBRTC SIGNALING ----
-  socket.on("offer", ({ sessionId, offer }) => {
-    socket.to(sessionId).emit("offer", offer);
-  });
+  /* The code block you provided is handling WebRTC signaling in a Node.js application using Socket.IO.
+  WebRTC (Web Real-Time Communication) is a technology that enables real-time communication between
+  browsers or other clients. In this context, the code is facilitating the exchange of signaling
+  messages between clients to establish a peer-to-peer connection for audio, video, or data sharing. */
+  
+  
+ // ---- WEBRTC SIGNALING ----
+socket.on("offer", ({ sessionId, offer }) => {
+  console.log("OFFER received");
+  console.log("From socket:", socket.id);
+  console.log("Session:", sessionId);
+  console.log("Offer:", offer);
 
-  socket.on("answer", ({ sessionId, answer }) => {
-    socket.to(sessionId).emit("answer", answer);
-  });
+  socket.to(sessionId).emit("offer", offer);
+});
 
-  socket.on("ice-candidate", ({ sessionId, candidate }) => {
-    socket.to(sessionId).emit("ice-candidate", candidate);
-  });
+socket.on("answer", ({ sessionId, answer }) => {
+  console.log("ANSWER received");
+  console.log("From socket:", socket.id);
+  console.log("Session:", sessionId);
+  console.log("Answer:", answer);
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
+  socket.to(sessionId).emit("answer", answer);
+});
+
+socket.on("ice-candidate", ({ sessionId, candidate }) => {
+  console.log("ICE Candidate received");
+  console.log("From socket:", socket.id);
+  console.log("Session:", sessionId);
+  console.log("Candidate:", candidate);
+
+  socket.to(sessionId).emit("ice-candidate", candidate);
+});
+
+socket.on("disconnect", () => {
+  console.log("User disconnected:", socket.id);
+});
 });
 
 server.listen(PORT, () => {
