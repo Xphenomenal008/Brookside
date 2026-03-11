@@ -113,10 +113,19 @@ const verifyOtp=async(req,res)=>{
 /* ===================== LOGIN ===================== */
 const functionlogin = async (req, res) => {
   try {
+
+    console.log("------ LOGIN ATTEMPT ------");
+
     const { email, password } = req.body;
+
+    console.log("Request body:", req.body);
+    console.log("Email received:", email);
+    console.log("Password received:", password);
+    console.log("Password length:", password?.length);
 
     // Presence check
     if (!email || !password) {
+      console.log("Missing email or password");
       return res.status(400).json({
         success: false,
         message: "All fields are required"
@@ -125,32 +134,54 @@ const functionlogin = async (req, res) => {
 
     // Find user
     const user = await User.findOne({ email });
+
+    console.log("User found in DB:", user);
+
     if (!user) {
+      console.log("No user found with email:", email);
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials"
+        message: "no user found"
       });
     }
 
-    //we will also check if user email is verified or not !
-    if (!user.isVerified){
+    console.log("User email:", user.email);
+    console.log("User verified:", user.isVerified);
+    console.log("Password in DB:", user.password);
+    console.log("Password hash length:", user.password?.length);
+
+    // Check email verification
+    if (!user.isVerified) {
+      console.log("User tried login but email not verified");
       return res.status(403).json({
-        success:false,
-        message:"please verify the email before logging in"
-      })
+        success: false,
+        message: "please verify the email before logging in"
+      });
     }
 
-    // Password compare
+    // Compare password
+    console.log("Comparing passwords...");
+
     const isMatch = await bcrypt.compare(password, user.password);
+
+    console.log("Entered password:", password);
+    console.log("Stored hash:", user.password);
+    console.log("bcrypt comparison result:", isMatch);
+
     if (!isMatch) {
+      console.log("Password mismatch for user:", email);
       return res.status(401).json({
         success: false,
         message: "Invalid credentials"
       });
     }
 
-    // Generate token + set cookie
-    const token=genratetokenandsetcookies(user._id, res);
+    console.log("Password matched. Generating token...");
+
+    // Generate token
+    const token = genratetokenandsetcookies(user._id, res);
+
+    console.log("Token generated successfully for:", user._id);
 
     res.status(200).json({
       success: true,
@@ -160,6 +191,8 @@ const functionlogin = async (req, res) => {
     });
 
   } catch (err) {
+    console.error("LOGIN ERROR:", err);
+
     res.status(500).json({
       success: false,
       message: "Internal server error"
