@@ -7,6 +7,7 @@ const sendOtpMail = require("../utitlites/sendOtpmails");
 const functionsignup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    console.log("Signup password:", password);
 
     // 1. Basic checks
     if (!name || !email || !password) {
@@ -15,7 +16,7 @@ const functionsignup = async (req, res) => {
         message: "All fields are required"
       });
     }
-
+          
     // 2. Find existing user
     const existingUser = await User.findOne({ email });
 
@@ -46,6 +47,7 @@ const functionsignup = async (req, res) => {
     // 5. New user → create
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("Generated hash:", hashedPassword);
 
     await User.create({
       name,
