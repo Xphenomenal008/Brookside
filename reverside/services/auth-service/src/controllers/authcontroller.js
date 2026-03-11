@@ -113,9 +113,10 @@ const verifyOtp=async(req,res)=>{
 /* ===================== LOGIN ===================== */
 const functionlogin = async (req, res) => {
   console.log("LOGIN BODY:", req.body);
-  console.log("Password length:", password?.length);
+  
   try {
     const { email, password } = req.body;
+    console.log("Password length:", password?.length);
 
     // Presence check
     if (!email || !password) {
