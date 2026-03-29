@@ -44,26 +44,13 @@ io.on("connection", (socket) => {
 
       if (!session) return;
 
-      const exists = session.participants.some(
-        (p) => p.userId?._id.toString() === userId.toString()
-      );
+       
 
-      if (!exists) {
-        session.participants.push({
-          userId: userId,
-          joinedAt: new Date(),
-        });
-
-        await session.save();
-      }
-
-      // fetch updated again with populate
-      const updatedSession = await Session.findById(sessionId)
-        .populate("participants.userId", "name email");
+ 
 
       io.to(sessionId).emit(
         "participants-update",
-        updatedSession.participants
+        session.participants
       );
 
     } catch (err) {
