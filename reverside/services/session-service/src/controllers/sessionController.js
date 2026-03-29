@@ -7,16 +7,10 @@ const createsession = async (req, res) => {
     const { podcastId } = req.body
     const hostId = req.userId || req.headers["x-user-id"]
 
-    const oursession = await Session.create({
-      podcastId,
-      hostId,
-      status: "live"
-    })
-
-    const episodeCreateUrl = `${process.env.PODCAST_SERVICE}/podcasts/fromSession`
+    const oursession = await Session.create({ podcastId, hostId, status: "live" })
 
     const responsek = await axios.post(
-      episodeCreateUrl,
+      `${process.env.PODCAST_SERVICE}/podcasts/fromSession`,
       { podcastId, sessionId: oursession._id, creatorId: hostId },
       {
         headers: { "x-internal-key": process.env.INTERNAL_KEY },
@@ -25,20 +19,13 @@ const createsession = async (req, res) => {
     )
 
     if (responsek.status !== 201) {
-      return res.status(500).json({
-        message: "Episode service error",
-        status: responsek.status,
-        data: responsek.data
-      })
+      return res.status(500).json({ message: "Episode service error", data: responsek.data })
     }
 
     oursession.episodeId = responsek.data.episodeId
     await oursession.save()
 
-    return res.status(201).json({
-      sessionId: oursession._id,
-      episodeId: oursession.episodeId
-    })
+    return res.status(201).json({ sessionId: oursession._id, episodeId: oursession.episodeId })
 
   } catch (e) {
     return res.status(500).json({ message: e.message })
@@ -50,10 +37,10 @@ const joinsession = async (req, res) => {
   try {
     const { sessionId } = req.params
     const userId = req.headers["x-user-id"]
-    const userName = req.headers["x-user-name"] || "User"  // ✅ grab name from header
+    const userName = req.headers["x-user-name"] || "User"
 
     if (!sessionId) {
-      return res.status(400).json({ message: "session not created!" })
+      return res.status(400).json({ message: "session not specified" })
     }
 
     const mysession = await Session.findOne({ _id: sessionId })
@@ -66,30 +53,21 @@ const joinsession = async (req, res) => {
       return res.status(400).json({ success: false, message: "session has ended!" })
     }
 
+    // ✅ FIX 1: check for duplicate before pushing
     const alreadyThere = mysession.participants.some((p) => p.userId === userId)
 
     if (alreadyThere) {
-      return res.status(200).json({   // ✅ return (was missing!) + 200 so frontend doesn't error
-        success: true,
-        message: "user already in session"
-      })
+      // ✅ return early — do NOT fall through (was missing return before)
+      return res.status(200).json({ success: true, message: "already in session" })
     }
 
-    mysession.participants.push({
-      userId,
-      userName,             // ✅ save name alongside userId
-      joinedAt: new Date()
-    })
-
+    mysession.participants.push({ userId, userName, joinedAt: new Date() })
     await mysession.save()
 
-    return res.status(201).json({
-      success: true,
-      message: "new user added to the session!"
-    })
+    return res.status(201).json({ success: true, message: "joined session!" })
 
   } catch (e) {
-    return res.status(500).json({ status: false, message: e.message })
+    return res.status(500).json({ success: false, message: e.message })
   }
 }
 
@@ -99,7 +77,7 @@ const getsessioninfo = async (req, res) => {
     const { sessionId } = req.params
 
     if (!sessionId) {
-      return res.status(401).json({ success: false, message: "please specify sessionId" })
+      return res.status(400).json({ success: false, message: "please specify sessionId" })
     }
 
     const mysession = await Session.findOne({ _id: sessionId })
@@ -111,7 +89,7 @@ const getsessioninfo = async (req, res) => {
     return res.status(200).json({ success: true, mysession })
 
   } catch (e) {
-    return res.status(500).json({ status: false, message: e.message })
+    return res.status(500).json({ success: false, message: e.message })
   }
 }
 
@@ -132,7 +110,7 @@ const endsession = async (req, res) => {
     }
 
     if (userId !== mysession.hostId.toString()) {
-      return res.status(403).json({ success: false, message: "unauthorized from session!" })
+      return res.status(403).json({ success: false, message: "unauthorized" })
     }
 
     if (!req.file) {
@@ -146,17 +124,17 @@ const endsession = async (req, res) => {
     formdata.append("episodeId", mysession.episodeId.toString())
     formdata.append("audio", req.file.buffer, {
       filename: req.file.originalname,
-      contentType: req.file.mimetype
+      contentType: req.file.mimetype,
     })
 
-    const Url = `${process.env.PODCAST_SERVICE}/podcasts/uploadepisodeaudio`
-    const responsel = await axios.post(Url, formdata, {
-      headers: {
-        ...formdata.getHeaders(),
-        "x-internal-key": process.env.INTERNAL_KEY
-      },
-      maxBodyLength: Infinity
-    })
+    const responsel = await axios.post(
+      `${process.env.PODCAST_SERVICE}/podcasts/uploadepisodeaudio`,
+      formdata,
+      {
+        headers: { ...formdata.getHeaders(), "x-internal-key": process.env.INTERNAL_KEY },
+        maxBodyLength: Infinity,
+      }
+    )
 
     return res.status(200).json({
       success: true,
@@ -164,15 +142,10 @@ const endsession = async (req, res) => {
       sessionId: mysession._id,
       audioUrl: responsel.data.audioUrl,
       episodeId: responsel.data.episodeId,
-      status: responsel.data.status
     })
 
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "end session failed",
-      error: error.message
-    })
+    return res.status(500).json({ success: false, message: error.message })
   }
 }
 
