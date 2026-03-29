@@ -1,27 +1,28 @@
-const mongoose=require("mongoose")
-const sessionSchema=mongoose.Schema({
-    podcastId:{
-        type:mongoose.Schema.Types.ObjectId,
-        required:true,
-        ref:'Podcast'
-    },
-    episodeId:{
-        //so that session knows to which episode it belongs to
-         type:mongoose.Schema.Types.ObjectId
-    },
-    hostId:{
-        type:String,
-        required:true
-    },
-    status:{
-        type:String,
-        enum:["waiting","ended","live"],
-        default:"waiting"
-    },
-    participants:[{
-        userId:String,
-        joinedAt:Date
-    }]
+const mongoose = require("mongoose")
 
+const sessionSchema = mongoose.Schema({
+  podcastId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: "Podcast"
+  },
+  episodeId: {
+    type: mongoose.Schema.Types.ObjectId
+  },
+  hostId: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ["waiting", "ended", "live"],
+    default: "waiting"
+  },
+  participants: [{
+    userId: String,
+    userName: String,      // ✅ store name so we don't need populate
+    joinedAt: Date
+  }]
 })
-module.exports=mongoose.model("Session",sessionSchema)
+
+module.exports = mongoose.model("Session", sessionSchema)
