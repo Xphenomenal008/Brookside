@@ -96,7 +96,8 @@ const joinsession=async(req,res)=>{
                 message:"session not created! "
             })
         }
-         const mysession=await Session.findOne({_id:sessionId})
+         const mysession=await Session.findOne({_id:sessionId}).populate("participants.userId","name email")
+                                      
          if (!mysession ){
            return  res.status(404).json({
                 sucess:false,
@@ -111,7 +112,7 @@ const joinsession=async(req,res)=>{
 
          }
 
-         const alredythere= await mysession.participants.some((user)=>user.userid==userId)
+         const alredythere= await mysession.participants.some((user)=>user.userId==userId)
          if(alredythere){
             res.status(401).json({
                 sucess:false,
@@ -120,7 +121,7 @@ const joinsession=async(req,res)=>{
          }
 
         mysession.participants.push({
-            userid:userId,
+            userId:userId,
             joinedAt:new Date()
             
          })

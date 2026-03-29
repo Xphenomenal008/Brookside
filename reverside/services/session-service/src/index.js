@@ -34,68 +34,60 @@ io.on("connection", (socket) => {
   socket.on("join-session", async ({ sessionId, userId }) => {
     try {
       socket.join(sessionId);
+
+      // notify others
       socket.to(sessionId).emit("user-joined", { userId });
 
-      const session = await Session.findById(sessionId);
+      // FIX 1: use correct field name + populate
+      const session = await Session.findById(sessionId)
+        .populate("participants.userId", "name email");
+
       if (!session) return;
 
       const exists = session.participants.some(
-        (p) => p.userid.toString() === userId.toString()
+        (p) => p.userId?._id.toString() === userId.toString()
       );
 
       if (!exists) {
         session.participants.push({
-          userid: userId,
+          userId: userId,
           joinedAt: new Date(),
         });
 
         await session.save();
       }
 
-      io.to(sessionId).emit("participants-update", session.participants);
+      // fetch updated again with populate
+      const updatedSession = await Session.findById(sessionId)
+        .populate("participants.userId", "name email");
+
+      io.to(sessionId).emit(
+        "participants-update",
+        updatedSession.participants
+      );
 
     } catch (err) {
       console.log("Socket join error:", err.message);
     }
   });
 
-  /* The code block you provided is handling WebRTC signaling in a Node.js application using Socket.IO.
-  WebRTC (Web Real-Time Communication) is a technology that enables real-time communication between
-  browsers or other clients. In this context, the code is facilitating the exchange of signaling
-  messages between clients to establish a peer-to-peer connection for audio, video, or data sharing. */
-  
-  
- // ---- WEBRTC SIGNALING ----
-socket.on("offer", ({ sessionId, offer }) => {
-  console.log("OFFER received");
-  console.log("From socket:", socket.id);
-  console.log("Session:", sessionId);
-  console.log("Offer:", offer);
+  // ---- WEBRTC SIGNALING ----
 
-  socket.to(sessionId).emit("offer", offer);
-});
+  socket.on("offer", ({ sessionId, offer }) => {
+    socket.to(sessionId).emit("offer", offer);
+  });
 
-socket.on("answer", ({ sessionId, answer }) => {
-  console.log("ANSWER received");
-  console.log("From socket:", socket.id);
-  console.log("Session:", sessionId);
-  console.log("Answer:", answer);
+  socket.on("answer", ({ sessionId, answer }) => {
+    socket.to(sessionId).emit("answer", answer);
+  });
 
-  socket.to(sessionId).emit("answer", answer);
-});
+  socket.on("ice-candidate", ({ sessionId, candidate }) => {
+    socket.to(sessionId).emit("ice-candidate", candidate);
+  });
 
-socket.on("ice-candidate", ({ sessionId, candidate }) => {
-  console.log("ICE Candidate received");
-  console.log("From socket:", socket.id);
-  console.log("Session:", sessionId);
-  console.log("Candidate:", candidate);
-
-  socket.to(sessionId).emit("ice-candidate", candidate);
-});
-
-socket.on("disconnect", () => {
-  console.log("User disconnected:", socket.id);
-});
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
 });
 
 server.listen(PORT, () => {

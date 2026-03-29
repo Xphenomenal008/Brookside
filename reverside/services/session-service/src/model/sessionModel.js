@@ -19,7 +19,7 @@ const sessionSchema=mongoose.Schema({
         default:"waiting"
     },
     participants:[{
-        userid:String,
+        userId:String,
         joinedAt:Date
     }]
 
